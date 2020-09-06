@@ -1,9 +1,10 @@
 const cartBtn = document.querySelector(".cart-btn");
 const closeCartBtn = document.querySelector(".close-cart");
-// const clearCartBtn = document.querySelector(".clear-cart");
+const clearCartBtn = document.querySelector(".clear-cart");
 const cartDOM = document.querySelector(".cart");
 const cartOverlay = document.querySelector(".cart-overlay");
 const productsDOM = document.querySelector(".products-center");
+const cartContent = document.querySelector('.cart-content');
 
 //cart
 let cart = [];
@@ -116,8 +117,6 @@ class UI {
             <i class="fas fa-chevron-down" data-id=${item.id}></i>
         </div>
         `;
-
-        const cartContent = document.querySelector('.cart-content');
         cartContent.appendChild(div);
     }
 
@@ -141,6 +140,35 @@ class UI {
     hideCart() {
         cartOverlay.classList.remove('transparentBcg');
         cartDOM.classList.remove('showCart');
+    }
+
+    cartLogic() {
+        clearCartBtn.addEventListener('click',() => {
+            this.clearCart();
+        });
+    }
+
+    clearCart() {
+        let cartItems = cart.map(item => item.id);
+        cartItems.forEach(id => this.removeItem(id));
+        
+        while(cartContent.children.length > 0) {
+            cartContent.removeChild(cartContent.children[0]);
+        }
+        this.hideCart();
+    }
+
+    removeItem(id) {
+        cart = cart.filter(item => item.id !== id);
+        this.setCartValues(cart);
+        Storage.saveCart(cart);
+        let button = this.getSingleButton(id);
+        button.disabled = false;
+        button.innerHTML = `<i class="fas fa-shopping-cart"></i>add to cart`;
+    }
+
+    getSingleButton(id) {
+        return buttonDOM.find(button => button.dataset.id === id);
     }
 }
 
@@ -175,5 +203,8 @@ document.addEventListener("DOMContentLoaded",() => {
     products.getProducts().then(products => {
         ui.displayProducts(products);
         Storage.saveProducts(products);
-    }).then(() => ui.getBagButtons());
+    }).then(() => {
+        ui.getBagButtons();
+        ui.cartLogic();
+    });
 });
